@@ -108,14 +108,34 @@ const deleteProduct = (id) => {
     })
 }
 
-const getAllProduct = () => {
+const getAllProduct = ( limit, page, sort, filters ) => {
     return new Promise(async (resolve, reject) => {
         try {
-            const allProduct = await Product.find()
+            let filterObject = {};
+            if (filters) {
+                Object.keys(filters).forEach(key => {
+                    filterObject[key] = { $regex: filters[key]}; 
+                });
+            }
+
+            const totalProduct = await Product.countDocuments(filterObject)
+            let query = Product.find(filterObject).limit(limit).skip(page*limit)
+
+            if(sort.field && sort.order) {
+                const sortObject = {}
+                sortObject[sort.field] = sort.order
+                query = query.sort(sortObject)
+            }
+
+
+            const allProduct = await query.exec()
             resolve({
                 status: 'OK',
                 message: 'Success',
                 data: allProduct,
+                totalProduct: totalProduct,
+                currentPage: Number(page + 1),
+                totalPage: Math.ceil(totalProduct / limit)
             })
 
         } catch (err) {
