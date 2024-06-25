@@ -9,17 +9,17 @@ const createUser = async (req, res) => {
         const isCheckEmail = re.test(email)
         if (!email || !password || !confirmPassword) {
             return res.status(200).json({
-                status: 'ERR',
+                status: 'error',
                 message: 'The input is requied'
             })
         } else if (!isCheckEmail) {
             return res.status(200).json({
-                status: 'ERR',
+                status: 'error',
                 message: 'The input email is invalid'
             })
         } else if (confirmPassword !== password) {
             return res.status(200).json({
-                status: 'ERR',
+                status: 'error',
                 message: 'The cofirm password is not equal to the password'
             })
         }
@@ -40,17 +40,22 @@ const loginUser = async (req, res) => {
         const isCheckEmail = re.test(email)
         if (!email || !password) {
             return res.status(200).json({
-                status: 'ERR',
+                status: 'error',
                 message: 'The input is requied'
             })
         } else if (!isCheckEmail) {
             return res.status(200).json({
-                status: 'ERR',
+                status: 'error',
                 message: 'The input email is invalid'
             })
         }
         const response = await UserService.loginUser(req.body)
-        return res.status(200).json(response)
+        const {refresh_token, ...newResponse} = response
+        res.cookie('refresh_token', refresh_token, {
+            HttpOnly: true,
+            Secure: true
+        })
+        return res.status(200).json(newResponse)
     } catch (e) {
         return res.status(404).json({
             message: e
@@ -125,8 +130,9 @@ const getDetailsUser = async (req, res) => {
 }
 
 const refreshToken = async (req, res) => {
+    console.log('req.cookies', req.cookies)
     try {
-        const token = req.headers.token.split(' ')[1]
+        const token = req.cookies.refresh_token
         if (!token) {
             return res.status(200).json({
                 status: 'ERR',
@@ -135,6 +141,7 @@ const refreshToken = async (req, res) => {
         }
         const response = await JwtService.refreshTokenJwtService(token)
         return res.status(200).json(response)
+        return
     } catch (e) {
         return res.status(404).json({
             message: e
