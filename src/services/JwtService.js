@@ -29,10 +29,9 @@ const refreshTokenJwtService = async (token) => {
                         message: 'The authentication'
                     })
                 }
-                const { payload } = user;
                 const access_token = await genneralAccessToken({
-                    id: payload?.id,
-                    isAdmin: payload?.isAdmin
+                    id: user?.id,
+                    isAdmin: user?.isAdmin
                 })
 
                 console.log(access_token)
