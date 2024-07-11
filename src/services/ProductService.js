@@ -49,7 +49,7 @@ const updateProduct = (id, data) => {
                 data: updatedProduct
             })
         } catch (error) {
-            reject(err)
+            reject(error)
         }
     })
 

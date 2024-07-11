@@ -80,6 +80,46 @@ const loginUser = (userLogin) => {
     })
 }
 
+const changePassword = (userId, oldPassword, newPassword) => {
+    return new Promise(async (resolve, reject) => {
+        try {
+            const user = await User.findOne({
+                _id: userId
+            });
+
+            if (!user) {
+                resolve({
+                    status: 'ERR',
+                    message: 'User not found'
+                });
+                return;
+            }
+
+            const isMatch = bcrypt.compareSync(oldPassword, user.password);
+
+            if (!isMatch) {
+                resolve({
+                    status: 'ERR',
+                    message: 'Old password is incorrect'
+                });
+                return;
+            }
+
+            const hash = bcrypt.hashSync(newPassword, 10);
+
+            user.password = hash;
+            await user.save();
+
+            resolve({
+                status: 'OK',
+                message: 'Password changed successfully'
+            });
+        } catch (err) {
+            reject(err);
+        }
+    });
+};
+
 const updateUser = (id, data) => {
     return new Promise(async (resolve, reject) => {
         try {
@@ -132,14 +172,34 @@ const deleteUser = (id) => {
     })
 }
 
-const getAllUser = () => {
+const getAllUser = ( limit, page, sort, filters ) => {
     return new Promise(async (resolve, reject) => {
         try {
+
+            let filterObject = {};
+            if (filters) {
+                Object.keys(filters).forEach(key => {
+                    filterObject[key] = { $regex: filters[key]}; 
+                });
+            }
+
+            const totalUser = await User.countDocuments(filterObject)
+            let query = User.find(filterObject).limit(limit).skip(page*limit)
+
+            if(sort.field && sort.order) {
+                const sortObject = {}
+                sortObject[sort.field] = sort.order
+                query = query.sort(sortObject)
+            }
+
             const allUser = await User.find()
             resolve({
                 status: 'OK',
                 message: 'Success',
                 data: allUser,
+                totalUser: totalUser,
+                currentPage: Number(page + 1),
+                totalPage: Math.ceil(totalUser / limit)
             })
 
         } catch (err) {
@@ -177,6 +237,7 @@ const getDetailsUser = (id) => {
 module.exports = {
     createUser,
     loginUser,
+    changePassword,
     updateUser,
     deleteUser,
     getAllUser,
