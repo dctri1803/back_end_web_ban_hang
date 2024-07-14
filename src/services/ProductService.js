@@ -108,6 +108,22 @@ const deleteProduct = (id) => {
     })
 }
 
+const deleteManyProduct = (ids) => {
+    return new Promise(async (resolve, reject) => {
+        try {
+            await Product.deleteMany({ _id: ids})
+
+            resolve({
+                status: 'OK',
+                message: 'Delete product successfully',
+            })
+
+        } catch (err) {
+            reject(err)
+        }
+    })
+}
+
 const getAllProduct = ( limit, page, sort, filters ) => {
     return new Promise(async (resolve, reject) => {
         try {
@@ -150,4 +166,5 @@ module.exports = {
     getDetailsProduct,
     deleteProduct,
     getAllProduct,
+    deleteManyProduct,
 }

@@ -135,6 +135,24 @@ const deleteUser = async (req, res) => {
     }
 }
 
+const deleteManyUser = async (req, res) => {
+    try {
+        const userIds = req.body.ids
+        if (!userIds) {
+            return res.status(200).json({
+                status: 'ERR',
+                message: 'The userIds is required'
+            })
+        }
+        const response = await UserService.deleteManyUser(userIds)
+        return res.status(200).json(response)
+    } catch (e) {
+        return res.status(404).json({
+            message: e
+        })
+    }
+}
+
 const getAllUser = async (req, res) => {
     try {
         const { limit, page, sortField, sortOrder, ...filters } = req.query
@@ -194,6 +212,7 @@ module.exports = {
     updateUser,
     changePassword,
     deleteUser,
+    deleteManyUser,
     getAllUser,
     getDetailsUser,
     refreshToken,
