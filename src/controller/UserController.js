@@ -3,7 +3,7 @@ const JwtService = require('../services/JwtService')
 
 const createUser = async (req, res) => {
     try {
-        const { name, email, password, confirmPassword, phone } = req.body
+        const { email, password, confirmPassword, } = req.body
         const re =
             /^(([^<>()[\]\.,;:\s@\"]+(\.[^<>()[\]\.,;:\s@\"]+)*)|(\".+\"))@(([^<>()[\]\.,;:\s@\"]+\.)+[^<>()[\]\.,;:\s@\"]{2,})$/i;
         const isCheckEmail = re.test(email)
@@ -100,15 +100,14 @@ const updateUser = async (req, res) => {
 const changePassword = async (req, res) => {
     try {
         const userId = req.params.id
-        const { oldPassword, newPassword } = req.body
-        console.log('id' ,userId)
+        const { currentPassword, newPassword } = req.body
         if (!userId) {
             return res.status(200).json({
                 status: 'ERR',
                 message: 'The userId is required'
             })
         }
-        const response = await UserService.changePassword(userId, oldPassword, newPassword)
+        const response = await UserService.changePassword(userId, currentPassword, newPassword)
         return res.status(200).json(response)
     } catch (e) {
         return res.status(404).json({
@@ -160,7 +159,7 @@ const getAllUser = async (req, res) => {
             field: sortField,
             order: sortOrder
         };
-        const response = await UserService.getAllUser(Number(limit) || 8, Number(page) || 0, sort, filters)
+        const response = await UserService.getAllUser(Number(limit) || null, Number(page) || 0, sort, filters)
         return res.status(200).json(response)
     } catch (e) {
         return res.status(404).json({

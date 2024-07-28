@@ -1,4 +1,4 @@
-const User = require('../model/UserModel');
+const User = require('../models/UserModel');
 const bcrypt = require("bcrypt");
 const { genneralAccessToken, genneralRefreshToken } = require('./JwtService');
 
@@ -80,7 +80,7 @@ const loginUser = (userLogin) => {
     })
 }
 
-const changePassword = (userId, oldPassword, newPassword) => {
+const changePassword = (userId, currentPassword, newPassword) => {
     return new Promise(async (resolve, reject) => {
         try {
             const user = await User.findOne({
@@ -95,14 +95,23 @@ const changePassword = (userId, oldPassword, newPassword) => {
                 return;
             }
 
-            const isMatch = bcrypt.compareSync(oldPassword, user.password);
+            const isMatch = bcrypt.compareSync(currentPassword, user.password);
 
             if (!isMatch) {
                 resolve({
                     status: 'ERR',
-                    message: 'Old password is incorrect'
+                    message: 'Mật khẩu hiện tại của bạn không đúng'
                 });
                 return;
+            }
+
+            const isSameAsCurrent = bcrypt.compareSync(newPassword, user.password);
+
+            if(isSameAsCurrent) {
+                resolve({
+                    status: 'ERR',
+                    message: 'Cần đặt mật khẩu mới khác với mật khẩu hiện tại'
+                })
             }
 
             const hash = bcrypt.hashSync(newPassword, 10);
@@ -112,7 +121,7 @@ const changePassword = (userId, oldPassword, newPassword) => {
 
             resolve({
                 status: 'OK',
-                message: 'Password changed successfully'
+                message: 'Đổi mật khẩu thành công'
             });
         } catch (err) {
             reject(err);

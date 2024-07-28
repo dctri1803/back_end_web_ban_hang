@@ -1,8 +1,8 @@
-const Product = require('../model/ProductModel');
+const Product = require('../models/ProductModel');
 
 const createProduct = (newProduct) => {
     return new Promise(async (resolve, reject) => {
-        const { name, image, type, price, countInStock, rating, description } = newProduct
+        const { name, image, type, price, countInStock, rating, description, discount } = newProduct
         try {
             const checkUser = await Product.findOne({
                 name: name
@@ -14,7 +14,7 @@ const createProduct = (newProduct) => {
                 })
             }
             const createdProduct = await Product.create({
-                name, image, type, price, countInStock, rating, description
+                name, image, type, price, countInStock, rating, description, discount
             })
             if (createdProduct) {
                 resolve({
@@ -127,6 +127,10 @@ const deleteManyProduct = (ids) => {
 const getAllProduct = ( limit, page, sort, filters ) => {
     return new Promise(async (resolve, reject) => {
         try {
+            let allProduct = []
+            if(!limit) {
+                allProduct = await Product.find()
+            }
             let filterObject = {};
             if (filters) {
                 Object.keys(filters).forEach(key => {
@@ -142,9 +146,9 @@ const getAllProduct = ( limit, page, sort, filters ) => {
                 sortObject[sort.field] = sort.order
                 query = query.sort(sortObject)
             }
-
-
-            const allProduct = await query.exec()
+            else {
+                allProduct = await query.exec()
+            }
             resolve({
                 status: 'OK',
                 message: 'Success',

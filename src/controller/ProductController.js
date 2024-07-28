@@ -1,9 +1,8 @@
 const ProductService = require('../services/ProductService')
 
-
 const createProduct = async (req, res) => {
     try {
-        const { name, image, type, price, countInStock, rating, description, } = req.body
+        const { name, image, type, price, countInStock, rating, description, discount } = req.body
         if (!name || !image || !type || !price || !countInStock || !rating) {
             return res.status(200).json({
                 status: 'ERR',
@@ -81,7 +80,7 @@ const getAllProduct = async (req, res) => {
             field: sortField,
             order: sortOrder
         };
-        const response = await ProductService.getAllProduct(Number(limit) || 12, Number(page) || 0, sort, filters)
+        const response = await ProductService.getAllProduct(Number(limit) || null, Number(page) || 0, sort, filters)
         return res.status(200).json(response)
     } catch (e) {
         return res.status(404).json({
