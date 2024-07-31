@@ -68,7 +68,6 @@ const getAllOrder = async (req, res) => {
         const data = await OrderService.getAllOrder()
         return res.status(200).json(data)
     } catch (e) {
-        // console.log(e)
         return res.status(404).json({
             message: e
         })
@@ -105,7 +104,6 @@ const getAllOrderDetails = async (req, res) => {
         const response = await OrderService.getAllOrderDetails(userId)
         return res.status(200).json(response)
     } catch (e) {
-        // console.log(e)
         return res.status(404).json({
             message: e
         })
@@ -131,10 +129,43 @@ const cancelOrderDetails = async (req, res) => {
     }
 }
 
+const updateOrderStatus = async (req, res) => {
+    try {
+        const orderId = req.params.id;
+        const { isPaid, isDelivered } = req.body;
+
+        if (!orderId) {
+            return res.status(400).json({
+                status: 'ERR',
+                message: 'The order ID is missing'
+            });
+        }
+        const paidStatus = (isPaid === 'Chưa trả' || isPaid === false) ? true : false;
+        const deliveredStatus = (isDelivered === 'Chưa giao' || isDelivered === false) ? true : false;
+
+        const response = await OrderService.updateOrderStatus(orderId, {
+            isPaid: paidStatus,
+            isDelivered: deliveredStatus
+        });
+
+        return res.status(200).json(response);
+    } catch (e) {
+        console.error('Error updating order status:', e);
+        return res.status(500).json({
+            message: 'An error occurred while updating the order status',
+            error: e.message
+        });
+    }
+}
+
+
+
+
 module.exports = {
     createOrder,
     getAllOrder,
     getDetailsOrder,
     cancelOrderDetails,
-    getAllOrderDetails
+    getAllOrderDetails,
+    updateOrderStatus
 }

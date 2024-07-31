@@ -56,7 +56,7 @@ const loginUser = async (req, res) => {
             secure: false,
             sameSite: 'strict'
         })
-        return res.status(200).json(newResponse)
+        return res.status(200).json(...newResponse, refresh_token)
     } catch (e) {
         return res.status(404).json({
             message: e
@@ -188,7 +188,7 @@ const getDetailsUser = async (req, res) => {
 
 const refreshToken = async (req, res) => {
     try {
-        const token = req.cookies.refresh_token
+        let token = req.headers.token.split(' ')[1]
         if (!token) {
             return res.status(200).json({
                 status: 'ERR',
@@ -197,13 +197,49 @@ const refreshToken = async (req, res) => {
         }
         const response = await JwtService.refreshTokenJwtService(token)
         return res.status(200).json(response)
-        return
     } catch (e) {
         return res.status(404).json({
             message: e
         })
     }
 }
+
+const forgotPassword = async (req, res) => {
+    try {
+        const { email } = req.body;
+        console.log("email",email)
+        if (!email) {
+            return res.status(200).json({
+                status: 'error',
+                message: 'The email is required'
+            });
+        }
+        const response = await UserService.generateOtp(email);
+        return res.status(200).json(response);
+    } catch (e) {
+        return res.status(404).json({
+            message: e
+        });
+    }
+};
+
+const resetPassword = async (req, res) => {
+    try {
+        const { email, otp, newPassword } = req.body;
+        if (!email || !otp || !newPassword) {
+            return res.status(200).json({
+                status: 'error',
+                message: 'All fields are required'
+            });
+        }
+        const response = await UserService.resetPassword(email, otp, newPassword);
+        return res.status(200).json(response);
+    } catch (e) {
+        return res.status(404).json({
+            message: e
+        });
+    }
+};
 
 module.exports = {
     createUser,
@@ -215,5 +251,7 @@ module.exports = {
     getAllUser,
     getDetailsUser,
     refreshToken,
-    logoutUser
+    logoutUser,
+    forgotPassword,
+    resetPassword
 }

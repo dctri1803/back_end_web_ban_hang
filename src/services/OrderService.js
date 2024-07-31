@@ -203,10 +203,43 @@ const getAllOrder = () => {
     })
 }
 
+const updateOrderStatus = async (id, data) => {
+    try {
+        // Find the order by ID
+        const order = await Order.findOne({ _id: id });
+        if (!order) {
+            throw new Error('Order not found');
+        }
+
+        // Prepare the update data object
+        const updateData = {};
+        if (data.hasOwnProperty('isPaid')) {
+            updateData.isPaid = data.isPaid;
+        }
+        if (data.hasOwnProperty('isDelivered')) {
+            updateData.isDelivered = data.isDelivered;
+        }
+
+        // Update the order and return the result
+        const updatedOrder = await Order.findByIdAndUpdate(id, updateData, { new: true });
+
+        return {
+            status: 'OK',
+            message: 'The order has been updated',
+            data: updatedOrder
+        };
+    } catch (e) {
+        console.error('Error updating order:', e);
+        throw e; // Rethrow the error to be handled by the controller
+    }
+}
+
+
 module.exports = {
     createOrder,
     getDetailsOrder,
     getAllOrderDetails,
     cancelOrderDetails,
-    getAllOrder
+    getAllOrder,
+    updateOrderStatus
 }

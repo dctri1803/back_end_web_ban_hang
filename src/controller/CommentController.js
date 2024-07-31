@@ -5,8 +5,6 @@ const createComment = async (req, res) => {
     try {
         const { productId, userId, content } = req.body;
 
-        console.log("req.body", req.body)
-
         if (!productId ) {
             return res.status(400).json({
                 status: 'ERR',
@@ -38,7 +36,7 @@ const createComment = async (req, res) => {
 const getCommentsByProduct = async (req, res) => {
     try {
         const { productId } = req.params;
-
+        const { limit, page } = req.query
         if (!productId) {
             return res.status(400).json({
                 status: 'ERR',
@@ -46,7 +44,7 @@ const getCommentsByProduct = async (req, res) => {
             });
         }
 
-        const response = await CommentService.getCommentsByProduct(productId);
+        const response = await CommentService.getCommentsByProduct(productId, Number(limit) || null, Number(page) || 0);
         return res.status(200).json(response);
     } catch (e) {
         return res.status(500).json({
@@ -57,11 +55,9 @@ const getCommentsByProduct = async (req, res) => {
 
 const replyToComment = async (req, res) => {
     try {
-        const { commentId, userId, content } = req.body;
+        const { productId, commentId, userId, content } = req.body;
 
-        console.log("req.body", req.body);
-
-        if (!commentId || !userId || !content) {
+        if (!productId || !commentId || !userId || !content) {
             return res.status(400).json({
                 status: 'ERR',
                 message: 'All fields are required',
@@ -81,10 +77,6 @@ const toggleLikeComment = async (req, res) => {
     try {
         const { commentId } = req.params;
         const { userId } = req.body;
-
-        console.log("commentId", commentId)
-        console.log("userId", userId)
-
 
         if (!commentId ) {
             return res.status(400).json({
@@ -114,10 +106,6 @@ const toggleDislikeComment = async (req, res) => {
         const { commentId } = req.params;
         const { userId } = req.body;
 
-        console.log("commentId", commentId)
-        console.log("userId", userId)
-
-
         if (!commentId ) {
             return res.status(400).json({
                 status: 'ERR',
@@ -141,10 +129,25 @@ const toggleDislikeComment = async (req, res) => {
     }
 };
 
-module.exports = {
-    toggleLikeComment,
-    toggleDislikeComment,
+const deleteComment = async (req, res) => {
+    try {
+        const {commentId}  = req.params;
+        if (!commentId) {
+            return res.status(200).json({
+                status: 'ERR',
+                message: 'Comment ID is required',
+            });
+        }
+
+        const response = await CommentService.deleteComment(commentId);
+        return res.status(200).json(response);
+    } catch (e) {
+        res.status(500).json({
+            message: e.message,
+        });
+    }
 };
+
 
 module.exports = {
     createComment,
@@ -152,4 +155,5 @@ module.exports = {
     replyToComment,
     toggleLikeComment,
     toggleDislikeComment,
+    deleteComment
 };

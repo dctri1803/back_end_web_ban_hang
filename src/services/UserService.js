@@ -1,6 +1,7 @@
 const User = require('../models/UserModel');
 const bcrypt = require("bcrypt");
 const { genneralAccessToken, genneralRefreshToken } = require('./JwtService');
+const EmailService = require('../services/EmailService')
 
 const createUser = (newUser) => {
     return new Promise(async (resolve, reject) => {
@@ -258,6 +259,70 @@ const getDetailsUser = (id) => {
     })
 }
 
+const generateOtp = (email) => {
+    return new Promise(async (resolve, reject) => {
+        try {
+            const user = await User.findOne({ email: email });
+            if (!user) {
+                resolve({
+                    status: 'ERR',
+                    message: 'User not found'
+                });
+                return;
+            }
+            const otp = Math.floor(100000 + Math.random() * 900000).toString(); // Generate 6 digit OTP
+            const otpExpiry = new Date(Date.now() + 10 * 60 * 1000); // OTP valid for 10 minutes
+
+            user.otp = otp;
+            user.otpExpiry = otpExpiry;
+            EmailService.sendOtp(email, otp);
+            await user.save();
+
+            resolve({
+                status: 'OK',
+                message: 'OTP generated',
+                data: { otp } // for testing purposes, in production do not send OTP in response
+            });
+        } catch (err) {
+            reject(err);
+        }
+    });
+};
+
+const resetPassword = (email, otp, newPassword) => {
+    return new Promise(async (resolve, reject) => {
+        try {
+            const user = await User.findOne({ email: email });
+            if (!user) {
+                resolve({
+                    status: 'ERR',
+                    message: 'User not found'
+                });
+                return;
+            }
+            if (user.otp !== otp || new Date() > user.otpExpiry) {
+                resolve({
+                    status: 'ERR',
+                    message: 'Invalid or expired OTP'
+                });
+                return;
+            }
+
+            const hash = bcrypt.hashSync(newPassword, 10);
+            user.password = hash;
+            user.otp = null;
+            user.otpExpiry = null;
+            await user.save();
+
+            resolve({
+                status: 'OK',
+                message: 'Password reset successfully'
+            });
+        } catch (err) {
+            reject(err);
+        }
+    });
+};
 
 module.exports = {
     createUser,
@@ -268,4 +333,6 @@ module.exports = {
     deleteManyUser,
     getAllUser,
     getDetailsUser,
+    generateOtp,
+    resetPassword
 }

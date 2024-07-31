@@ -22,10 +22,12 @@ const createComment = (newComment) => {
     });
 };
 
-const getCommentsByProduct = (productId) => {
+const getCommentsByProduct = (productId, limit, page) => {
     return new Promise(async (resolve, reject) => {
         try {
             const comments = await Comment.find({ product: productId })
+                .skip((page - 1) * limit)
+                .limit(limit)
                 .populate('user', 'name avatar')
                 .populate({
                     path: 'replies',
@@ -34,11 +36,13 @@ const getCommentsByProduct = (productId) => {
                         select: 'name avatar'
                     }
                 });
+
             const commentsWithCounts = comments.map(comment => ({
                 ...comment.toObject(),
                 likesCount: comment.likes.length,
                 dislikesCount: comment.dislikes.length
             }));
+
             resolve({
                 status: 'OK',
                 message: 'Success',
@@ -50,13 +54,14 @@ const getCommentsByProduct = (productId) => {
     });
 };
 
+
 const replyToComment = (replyData) => {
     return new Promise(async (resolve, reject) => {
         try {
-            const { commentId, userId, content } = replyData;
+            const { productId, commentId, userId, content } = replyData;
 
             const reply = await Comment.create({
-                product: null,
+                product: productId,  // Correctly set the productId here
                 user: userId,
                 content,
                 parentComment: commentId,
@@ -139,10 +144,39 @@ const toggleDislikeComment = (toggleData) => {
     });
 };
 
+const deleteComment = (commentId) => {
+    return new Promise(async (resolve, reject) => {
+        try {
+            const checkComment = await Comment.findOne({
+                _id: commentId
+            })
+
+            if (checkComment == null) {
+                resolve({
+                    status: 'OK',
+                    message: 'The comment is not found'
+                })
+            }
+
+            await Comment.findByIdAndDelete(commentId)
+
+            resolve({
+                status: 'OK',
+                message: 'Delete comment successfully',
+            })
+
+
+        } catch (err) {
+            reject(err)
+        }
+    })
+}
+
 module.exports = {
     createComment,
     getCommentsByProduct,
     replyToComment,
     toggleLikeComment,
     toggleDislikeComment,
+    deleteComment
 };

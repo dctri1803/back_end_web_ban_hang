@@ -18,12 +18,12 @@ const sendEmailCreateOrder = async (email, orderItems) => {
         listItem += `<div>
         <div>Bạn đã đặt hàng thành công</div>
         <div>Sản phẩm: <b>${order.name}</b>, số lượng: <b>${order.amount}</b>, giá tiền: <b>${order.price}</b></div>
-        <div><img src=${order.image} alt="Sản phẩm"> </div>
+        <div> alt="Sản phẩm"> </div>
         </div>`
     })
 
     let info = await transporter.sendMail({
-        from: '"Dịch vụ 👻"  TAKA', // sender address
+        from: '"Dịch vụ 👻" của TAKA', // sender address
         to: `${email}`, // list of receivers
         subject: "Đơn hàng của bạn", // Subject line
         text: "Đơn hàng của bạn đã đặt tại TAKA", // plain text body
@@ -31,31 +31,27 @@ const sendEmailCreateOrder = async (email, orderItems) => {
     });
 }
 
-const sendEmail = async (to, subject, text) => {
-    const transporter = nodemailer.createTransport({
-        service: 'Gmail',
+const sendOtp = async (email, otp) => {
+    let transporter = nodemailer.createTransport({
+        host: "smtp.gmail.com",
+        port: 465,
+        secure: true,
         auth: {
-            user: 'your-email@gmail.com',
-            pass: 'your-email-password',
+            user: process.env.MAIL_ACCOUNT,
+            pass: process.env.MAIL_PASSWORD,
         },
     });
 
-    const mailOptions = {
-        from: 'your-email@gmail.com',
-        to,
-        subject,
-        text,
-    };
-
-    try {
-        await transporter.sendMail(mailOptions);
-    } catch (error) {
-        console.error('Error sending email:', error);
-    }
+    let info = await transporter.sendMail({
+        from: '"Service 👻" from TAKA',
+        to: `${email}`,
+        subject: "Your OTP Code",
+        text: `Your OTP code is ${otp}. It is valid for 10 minutes.`,
+        html: `<div>Your OTP code is <b>${otp}</b>. It is valid for 10 minutes.</div>`,
+    });
 };
 
-
-
 module.exports = {
-    sendEmailCreateOrder
+    sendEmailCreateOrder,
+    sendOtp
 }
