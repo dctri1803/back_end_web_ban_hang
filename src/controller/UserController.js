@@ -54,9 +54,10 @@ const loginUser = async (req, res) => {
         res.cookie('refresh_token', refresh_token, {
             httpOnly: true,
             secure: false,
-            sameSite: 'strict'
+            sameSite: 'strict',
+            path: '/'
         })
-        return res.status(200).json(...newResponse, refresh_token)
+        return res.status(200).json({...newResponse, refresh_token})
     } catch (e) {
         return res.status(404).json({
             message: e
@@ -207,7 +208,7 @@ const refreshToken = async (req, res) => {
 const forgotPassword = async (req, res) => {
     try {
         const { email } = req.body;
-        console.log("email",email)
+        console.log("email", email)
         if (!email) {
             return res.status(200).json({
                 status: 'error',
