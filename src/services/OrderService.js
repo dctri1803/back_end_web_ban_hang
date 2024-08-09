@@ -29,7 +29,7 @@ const createOrder = (newOrder) => {
                     {
                         $inc: {
                             countInStock: -order.amount,
-                            selled: +order.amount
+                            sold: +order.amount
                         }
                     },
                     { new: true }
@@ -142,12 +142,12 @@ const cancelOrderDetails = (id, data) => {
                 const productData = await Product.findOneAndUpdate(
                     {
                         _id: order.product,
-                        selled: { $gte: order.amount }
+                        sold: { $gte: order.amount }
                     },
                     {
                         $inc: {
                             countInStock: +order.amount,
-                            selled: -order.amount
+                            sold: -order.amount
                         }
                     },
                     { new: true }
